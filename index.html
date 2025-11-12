@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Проверка WhatsApp</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #25D366;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    input[type="tel"] {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="tel"]:focus {
+      outline: none;
+      border-color: #25D366;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+    }
+
+    button:hover {
+      background: #20BA5A;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .whatsapp-icon {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .error {
+      color: #e74c3c;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .examples {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .examples h3 {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .examples p {
+      font-size: 12px;
+      color: #888;
+      margin: 3px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="whatsapp-icon">📱</div>
+    <h1>WhatsApp Checker</h1>
+    <p class="subtitle">Быстрая проверка номера в WhatsApp</p>
+
+    <div class="input-group">
+      <label for="phone">Номер телефона</label>
+      <input type="tel" id="phone" placeholder="+79001234567" autocomplete="off">
+      <p class="hint">Введите номер с кодом страны</p>
+      <p class="error" id="error">Пожалуйста, введите корректный номер</p>
+    </div>
+
+    <button onclick="openWhatsApp()">Открыть в WhatsApp</button>
+
+    <div class="examples">
+      <h3>Примеры формата:</h3>
+      <p>🇷🇺 Россия: +79001234567</p>
+      <p>🇺🇦 Украина: +380501234567</p>
+      <p>🇰🇿 Казахстан: +77001234567</p>
+    </div>
+  </div>
+
+  <script>
+    const phoneInput = document.getElementById('phone')
+    const errorMsg = document.getElementById('error')
+
+    // Автоматическое добавление + в начале
+    phoneInput.addEventListener('input', function (e) {
+      let value = e.target.value.replace(/[^\d+]/g, '')
+
+      if (value && !value.startsWith('+')) {
+        value = '+' + value
+      }
+
+      e.target.value = value
+
+      // Скрыть ошибку при вводе
+      if (errorMsg.style.display === 'block') {
+        errorMsg.style.display = 'none'
+      }
+    })
+
+    // Открытие по Enter
+    phoneInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        openWhatsApp()
+      }
+    })
+
+    function openWhatsApp() {
+      const phone = phoneInput.value.trim()
+
+      // Валидация
+      if (!phone || phone.length < 10) {
+        errorMsg.style.display = 'block'
+        phoneInput.style.borderColor = '#e74c3c'
+        return
+      }
+
+      // Очистка номера (удаляем все кроме цифр)
+      const cleanPhone = phone.replace(/\D/g, '')
+
+      if (cleanPhone.length < 10) {
+        errorMsg.style.display = 'block'
+        phoneInput.style.borderColor = '#e74c3c'
+        return
+      }
+
+      // Формирование ссылки WhatsApp
+      const whatsappUrl = `https://wa.me/${cleanPhone}`
+
+      // Открытие в новой вкладке
+      window.open(whatsappUrl, '_blank')
+
+      // Опционально: очистить поле после открытия
+      // phoneInput.value = '';
+
+      // Визуальная обратная связь
+      phoneInput.style.borderColor = '#25D366'
+    }
+
+    // Автофокус на поле ввода
+    window.addEventListener('load', () => {
+      phoneInput.focus()
+    });
+  </script>
+</body>
+
+</html>
