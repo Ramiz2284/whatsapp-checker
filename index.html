@@ -149,6 +149,17 @@
       <p class="error" id="error">Пожалуйста, введите корректный номер</p>
     </div>
 
+    <!-- Выбор, в каком приложении открывать номер -->
+    <div class="input-group">
+      <label for="appChoice">Открыть в</label>
+      <select id="appChoice" aria-label="Выбор приложения">
+        <option value="whatsapp">WhatsApp (обычный)</option>
+        <option value="business">WhatsApp Business</option>
+      </select>
+      <p class="hint">На мобильных устройствах попытаемся открыть выбранное приложение, на десктопе используется
+        веб-версия.</p>
+    </div>
+
     <button onclick="openWhatsApp()">Открыть в WhatsApp</button>
 
     <div class="examples">
@@ -162,6 +173,7 @@
   <script>
     const phoneInput = document.getElementById('phone')
     const errorMsg = document.getElementById('error')
+    const appChoice = document.getElementById('appChoice')
 
     // Автоматическое добавление + в начале
     phoneInput.addEventListener('input', function (e) {
@@ -205,11 +217,40 @@
         return
       }
 
-      // Формирование ссылки WhatsApp
-      const whatsappUrl = `https://wa.me/${cleanPhone}`
+      // Формирование ссылок/схем на основе выбора пользователя.
+      // Предпочтение: попытка открыть нативное приложение на мобильных устройствах
+      // с безопасным fallback на https://wa.me/ (веб).
+      const waWebUrl = `https://wa.me/${cleanPhone}`
 
-      // Открытие в новой вкладке
-      window.open(whatsappUrl, '_blank')
+      const choice = appChoice ? appChoice.value : 'whatsapp'
+
+      // Пакеты приложений (Android) — используем intent для попытки открыть конкретное приложение.
+      const pkg = choice === 'business' ? 'com.whatsapp.w4b' : 'com.whatsapp'
+
+      const isAndroid = /Android/i.test(navigator.userAgent)
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+      if (isAndroid) {
+        // Android: используем intent URL с указанием package — это попытается открыть конкретное приложение.
+        const intentUrl = `intent://send?phone=${cleanPhone}#Intent;package=${pkg};scheme=whatsapp;end`
+        // открываем в том же окне, intent обработается системой
+        window.location.href = intentUrl
+        // На случай если intent не сработал (браузер не поддерживает) — через 1.5s открыть веб-версию
+        setTimeout(() => window.open(waWebUrl, '_blank'), 1500)
+        return
+      }
+
+      if (isIOS) {
+        // iOS: сначала попробуем схему приложения, затем fallback на веб
+        const appUrl = `whatsapp://send?phone=${cleanPhone}`
+        // Попытка открыть схему (в текущем окне), затем открыть веб-версию, если схема не сработает
+        window.location.href = appUrl
+        setTimeout(() => window.open(waWebUrl, '_blank'), 1500)
+        return
+      }
+
+      // Десктоп / неизвестная платформа — открываем веб-версию в новой вкладке
+      window.open(waWebUrl, '_blank')
 
       // Опционально: очистить поле после открытия
       // phoneInput.value = '';
